@@ -1,0 +1,27 @@
+model:
+  type: LSTM
+  units: 128
+  nlayers: 1
+  top_classifier_units: 32
+
+optimizer:
+  lr: 1e-3
+  weight_decay: 0.0
+
+scheduler:
+  base_lr: 0.0001
+  step_size_up: 10000
+  max_lr: 0.006
+  cycle_momentum: False
+  mode: "triangular2"
+
+train_batch_size: 512
+val_batch_size: 512
+num_epochs: 15
+device: cuda
+path_to_checkpoints: "./checkpoints/pytorch_baseline/"
+
+train_buckets_path: "/content/drive/MyDrive/ml/dl-alpha-competition/train_buckets_rnn/."
+val_buckets_path: "/content/drive/MyDrive/ml/dl-alpha-competition/val_buckets_rnn/."
+test_buckets_path: "/content/drive/MyDrive/ml/dl-alpha-competition/test_buckets_rnn/."
+uniques_emb_path: uniques.pkl
