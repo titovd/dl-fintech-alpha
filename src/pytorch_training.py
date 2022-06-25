@@ -2,6 +2,7 @@ from typing import List
 import torch
 import pandas as pd
 import torch.nn as nn
+import wandb
 from tqdm.auto import tqdm
 from sklearn.metrics import roc_auc_score
 
@@ -74,6 +75,7 @@ def train_epoch(
         if num_batch % print_loss_every_n_batches == 0:
             print(f"Batches {num_batch - print_loss_every_n_batches + 1} - {num_batch} loss:"
                   f"{losses[-samples_counter:].mean()}")
+            wandb.log({"loss" : losses[-samples_counter:].mean()})
             samples_counter = 0
 
     print(f"Training loss after epoch: {losses.mean()}")

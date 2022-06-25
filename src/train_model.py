@@ -10,11 +10,14 @@ from omegaconf import DictConfig
 
 import os
 import torch
+import wandb
 
-@hydra.main(config_path=".", config_name="gru", version_base=None)
+@hydra.main(config_path=".", config_name='gru', version_base=None)
 def train_rnn_model(
     cfg: DictConfig
 ):
+    wandb.init(project="dl-alpha-demo", config=cfg, name=cfg['run_name'])
+    
     uniques = read_pickle_file(cfg['uniques_emb_path'])
     embedding_projections = compute_emb_projections(uniques)
     
@@ -74,7 +77,8 @@ def train_rnn_model(
                                 batch_size=cfg['val_batch_size'], 
                                 device=cfg['device'])
         print(f"Epoch {epoch+1} completed. Train ROC-AUC: {train_roc_auc}, val ROC-AUC: {val_roc_auc}")
-    
+        wandb.log({"train_roc_auc": train_roc_auc, "val_roc_auc" : val_roc_auc})
+    wandb.finish()
     
 if __name__ == '__main__':
     train_rnn_model()

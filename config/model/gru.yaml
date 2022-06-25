@@ -1,3 +1,5 @@
+run_name: gru-exmperiment
+
 model:
   type: LSTM
   units: 128
@@ -6,7 +8,7 @@ model:
 
 optimizer:
   lr: 1e-3
-  weight_decay: 0.0
+  weight_decay: 1e-4
 
 scheduler:
   base_lr: 0.0001

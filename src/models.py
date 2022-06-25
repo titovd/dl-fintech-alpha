@@ -36,38 +36,42 @@ class CreditsEmbedder(nn.Module):
 
 class TransformerCreditsModel(nn.Module):
 
-    def __init__(self, features, embedding_projections, nhead=2, nlayers=4, p_dropout=0, top_classifier_units=32):
+    def __init__(self, features, embedding_projections, nhead=3, nlayers=4, p_dropout=0.1, top_classifier_units=32):
         super(TransformerCreditsModel, self).__init__()
         self._credits_embedder = CreditsEmbedder(features, embedding_projections)
 
         self._d_model = sum([embedding_projections[x][1] for x in features])
+
         self._encoder_layer = nn.TransformerEncoderLayer(
             d_model=self._d_model, 
             nhead=nhead, 
+            dim_feedforward=256,
             dropout=p_dropout
         )
 
         self._transformer_enc = nn.TransformerEncoder(
-            self._encoder_layer, num_layers=nlayers
+            self._encoder_layer, 
+            num_layers=nlayers
         )
 
-        self._top_classifier = nn.Linear(in_features=self._d_model, 
+        self._top_classifier = nn.Linear(in_features=2 * self._d_model, 
                                          out_features=top_classifier_units)
         self._intermediate_activation = nn.ReLU()
-        self._head = nn.Linear(in_features=top_classifier_units, out_features=2)
+        self._head = nn.Linear(in_features=top_classifier_units, out_features=1)
 
     def forward(self, features):
         emb = self._credits_embedder(features)
         out = self._transformer_enc(emb.permute(1, 0, 2))
         
         out_max_pool = out.permute(1, 0, 2).max(dim=1)[0]
+        out_avg_pool = out.permute(1, 0, 2).sum(dim=1) / out.permute(1, 0, 2).shape[1] 
+        combined_input = torch.cat([out_max_pool, out_avg_pool], dim=-1)
+        classification_hidden = self._top_classifier(combined_input)
+
+        activation = self._intermediate_activation(classification_hidden)
+        logits = self._head(activation)
         
-        classification_hidden = self._top_classifier(out_max_pool)
-        return classification_hidden
-        # activation = self._intermediate_activation(classification_hidden)
-        # logits = self._head(activation)
-        
-        # return logits
+        return logits.squeeze(1)
 
 
 # =================================================
