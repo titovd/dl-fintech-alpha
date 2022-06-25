@@ -15,8 +15,8 @@ scheduler:
   cycle_momentum: False
   mode: "triangular2"
 
-train_batch_size: 512
-val_batch_size: 512
+train_batch_size: 256
+val_batch_size: 256
 num_epochs: 15
 device: cuda
 path_to_checkpoints: "./checkpoints/pytorch_baseline/"
