@@ -8,9 +8,20 @@ from training_aux import EarlyStopping
 import hydra
 from omegaconf import DictConfig
 
+import numpy as np
 import os
 import torch
 import wandb
+import random
+
+seed = 312
+torch.manual_seed(seed)
+torch.cuda.manual_seed(seed)
+torch.cuda.manual_seed_all(seed)
+np.random.seed(seed)
+random.seed(seed)
+torch.backends.cudnn.benchmark = False
+torch.backends.cudnn.deterministic = True
 
 @hydra.main(config_path=".", config_name='gru', version_base=None)
 def train_rnn_model(
@@ -35,12 +46,19 @@ def train_rnn_model(
         weight_decay=cfg['optimizer']['weight_decay']
     )
     
-    scheduler = torch.optim.lr_scheduler.CyclicLR(
-        optimizer, base_lr=cfg['scheduler']['base_lr'], 
-        step_size_up=cfg['scheduler']['step_size_up'], 
-        max_lr=cfg['scheduler']['max_lr'], 
-        cycle_momentum=cfg['scheduler']['cycle_momentum'], 
-        mode=cfg['scheduler']['mode']
+    # scheduler = torch.optim.lr_scheduler.CyclicLR(
+    #     optimizer, base_lr=cfg['scheduler']['base_lr'], 
+    #     step_size_up=cfg['scheduler']['step_size_up'], 
+    #     max_lr=cfg['scheduler']['max_lr'], 
+    #     cycle_momentum=cfg['scheduler']['cycle_momentum'], 
+    #     mode=cfg['scheduler']['mode']
+    # )
+    
+    scheduler = torch.optim.lr_scheduler.StepLR(
+        optimizer, 
+        step_size=cfg['scheduler']['step_size'],
+        gamma=cfg['scheduler']['gamma']
+        
     )
     
     es = EarlyStopping(

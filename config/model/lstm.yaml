@@ -1,0 +1,26 @@
+run_name: BiLSTM-128-steplr
+
+model:
+  type: LSTM
+  units: 128
+  nlayers: 1
+  top_classifier_units: 32
+
+optimizer:
+  lr: 5e-4
+  weight_decay: 1e-5
+
+scheduler:
+  step_size: 20000
+  gamma: 0.5
+
+train_batch_size: 256
+val_batch_size: 256
+num_epochs: 15
+device: cuda
+path_to_checkpoints: "./checkpoints/pytorch_baseline/"
+
+train_buckets_path: "/content/drive/MyDrive/dl-alpha-competition/train_buckets_rnn/."
+val_buckets_path: "/content/drive/MyDrive/dl-alpha-competition/val_buckets_rnn/."
+test_buckets_path: "/content/drive/MyDrive/dl-alpha-competition/test_buckets_rnn/."
+uniques_emb_path: "/content/dl-fintech-alpha/data/processed/uniques.pkl"
