@@ -27,10 +27,12 @@ class EarlyStopping:
 
     def __init__(self, patience=7, mode='min', verbose=False, delta=0, save_path='checkpoint.hdf5', metric_name=None, save_format='torch'):
         if mode not in ["min", "max"]:
-            raise ValueError(f"Unrecognized mode: {mode}! Please choose one of the following modes: \"min\", \"max\"")
+            raise ValueError(
+                f"Unrecognized mode: {mode}! Please choose one of the following modes: \"min\", \"max\"")
 
         if save_format not in ["torch", "tf"]:
-            raise ValueError(f"Unrecognized format: {save_format}! Please choose one of the following formats: \"torch\", \"tf\"")
+            raise ValueError(
+                f"Unrecognized format: {save_format}! Please choose one of the following formats: \"torch\", \"tf\"")
 
         self.patience = patience
         self.mode = mode
@@ -55,7 +57,8 @@ class EarlyStopping:
             self.counter += 1
             print(
                 f"No imporvement in validation {self.metric_name}. Current: {score:.6f}. Current best: {self.best_score:.6f}")
-            print(f"EarlyStopping counter: {self.counter} out of {self.patience}")
+            print(
+                f"EarlyStopping counter: {self.counter} out of {self.patience}")
             if self.counter >= self.patience:
                 self.early_stop = True
         else:
