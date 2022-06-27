@@ -1,21 +1,27 @@
 run_name: gru-exmperiment
 
 model:
-  type: LSTM
-  units: 128
-  nlayers: 1
-  top_classifier_units: 32
+  name: RNN
+  params:
+    type: GRU
+    units: 128
+    nlayers: 1
+    top_classifier_units: 32
 
 optimizer:
-  lr: 1e-3
-  weight_decay: 1e-4
+  name: Adam
+  params:
+    lr: 1e-3
+    weight_decay: 1e-4
 
 scheduler:
-  base_lr: 0.0001
-  step_size_up: 10000
-  max_lr: 0.006
-  cycle_momentum: False
-  mode: "triangular2"
+  name: CyclicLR
+  params:
+    base_lr: 0.0001
+    step_size_up: 10000
+    max_lr: 0.006
+    cycle_momentum: False
+    mode: "triangular2"
 
 train_batch_size: 256
 val_batch_size: 256

@@ -1,18 +1,24 @@
-run_name: BiLSTM-128-steplr
+run_name: BiLSTM-128-steplr-test
 
 model:
-  type: LSTM
-  units: 128
-  nlayers: 1
-  top_classifier_units: 32
+  name: RNN
+  params:
+    type: LSTM
+    units: 128
+    nlayers: 1
+    top_classifier_units: 32
 
 optimizer:
-  lr: 5e-4
-  weight_decay: 1e-5
+  name: Adam
+  params:
+    lr: 5e-4
+    weight_decay: 1e-5
 
 scheduler:
-  step_size: 20000
-  gamma: 0.5
+  name: StepLR
+  params:
+    step_size: 20000
+    gamma: 0.5
 
 train_batch_size: 256
 val_batch_size: 256

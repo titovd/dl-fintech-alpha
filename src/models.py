@@ -12,18 +12,16 @@ class CreditsEmbedder(nn.Module):
     def __init__(self, features, embedding_projections):
         super(CreditsEmbedder, self).__init__()
 
-        self._credits_cat_embeddings = nn.ModuleList([self._create_embedding_projection(*embedding_projections[feature]) 
-                                                          for feature in features])
+        self._credits_cat_embeddings = nn.ModuleList(
+            [self._create_embedding_projection(*embedding_projections[feature]) 
+             for feature in features]
+            )
         self._pos_emb = nn.Embedding(59, 6)
 
     def forward(self, features):
         batch_size = features[0].shape[0]
         seq_len = features[0].shape[1]
         embeddings = [embedding(features[i]) for i, embedding in enumerate(self._credits_cat_embeddings)]
-
-        # pos_emb = torch.arange(1, seq_len + 1) * torch.ones(batch_size, seq_len).int()
-        # pos_emb = self._pos_emb(pos_emb.cuda())
-        # embeddings.append(pos_emb)
 
         concated_embeddings = torch.cat(embeddings, dim=-1)
         return concated_embeddings
@@ -35,8 +33,15 @@ class CreditsEmbedder(nn.Module):
 
 
 class TransformerCreditsModel(nn.Module):
-
-    def __init__(self, features, embedding_projections, nhead=3, nlayers=4, p_dropout=0.1, top_classifier_units=32):
+    def __init__(
+        self, 
+        features, 
+        embedding_projections,
+        dim_feedforward=128, 
+        nhead=3, 
+        nlayers=4, 
+        p_dropout=0.1, 
+        top_classifier_units=32):
         super(TransformerCreditsModel, self).__init__()
         self._credits_embedder = CreditsEmbedder(features, embedding_projections)
 
@@ -45,7 +50,7 @@ class TransformerCreditsModel(nn.Module):
         self._encoder_layer = nn.TransformerEncoderLayer(
             d_model=self._d_model, 
             nhead=nhead, 
-            dim_feedforward=256,
+            dim_feedforward=dim_feedforward,
             dropout=p_dropout
         )
 
@@ -62,9 +67,10 @@ class TransformerCreditsModel(nn.Module):
     def forward(self, features):
         emb = self._credits_embedder(features)
         out = self._transformer_enc(emb.permute(1, 0, 2))
-        
+        # poolings
         out_max_pool = out.permute(1, 0, 2).max(dim=1)[0]
         out_avg_pool = out.permute(1, 0, 2).sum(dim=1) / out.permute(1, 0, 2).shape[1] 
+        
         combined_input = torch.cat([out_max_pool, out_avg_pool], dim=-1)
         classification_hidden = self._top_classifier(combined_input)
 
@@ -75,7 +81,7 @@ class TransformerCreditsModel(nn.Module):
 
 
 # =================================================
-#               LSTM based Model
+#               RNN-based Models
 # =================================================
 
 def get_rnn_model(rnn_type, **kwargs):
@@ -144,7 +150,7 @@ class CreditsRNN(nn.Module):
         )
         
 # =============================================================
-#               LSTM/GRU model with attention mechanism
+#               RNN model with attention mechanism
 # =============================================================
 
 
