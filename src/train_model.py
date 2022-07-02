@@ -12,7 +12,7 @@ import torch
 import wandb
 import random
 
-seed = 312
+seed = 317
 torch.manual_seed(seed)
 torch.cuda.manual_seed(seed)
 torch.cuda.manual_seed_all(seed)

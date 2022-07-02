@@ -7,7 +7,7 @@ import tqdm
 import torch
 from typing import List
 
-from models import CreditsRNN, TransformerCreditsModel
+from models import CreditsRNN, TransformerCreditsModel, CreditsAdvancedRNN
 from dataset_preprocessing_utils import features
 
 
@@ -66,6 +66,7 @@ def compute_emb_projections(uniques_features: dict) -> dict:
 
 
 def calculate_weight(ids: np.array) -> torch.FloatTensor:
+    """ Вычисление веса объекта по его id. """
     return torch.FloatTensor((ids / 2_500_000) * 0.55 + 0.85)
 
 
@@ -78,6 +79,8 @@ def get_model_by_name(model_name: str, emb_path: str, **kwargs) -> torch.nn.Modu
             features, embedding_projections, **kwargs)
     elif model_name == "Transformer":
         return TransformerCreditsModel(features, embedding_projections)
+    elif model_name == "ARNN":
+        return CreditsAdvancedRNN(features, embedding_projections, **kwargs)
 
 
 def get_optimizer_by_name(optimizer_name: str, model: torch.nn.Module, **kwargs) -> torch.optim.Optimizer:

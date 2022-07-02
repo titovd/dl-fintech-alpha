@@ -156,14 +156,14 @@ class CreditsRNN(nn.Module):
         )
 
 # =============================================================
-#               RNN model with attention mechanism
+#               Advanced RNN models
 # =============================================================
 
 
-class CreditsAttentionRNN(nn.Module):
+class CreditsAdvancedRNN(nn.Module):
     def __init__(self, features, embedding_projections,
                  rnn_type="GRU", rnn_units=128, rnn_num_layers=1, top_classifier_units=64):
-        super(CreditsAttentionRNN, self).__init__()
+        super(CreditsAdvancedRNN, self).__init__()
         self._credits_cat_embeddings = nn.ModuleList(
             [self._create_embedding_projection(*embedding_projections[feature])
              for feature in features]
@@ -178,6 +178,7 @@ class CreditsAttentionRNN(nn.Module):
             batch_first=True,
             bidirectional=True
         )
+        self._spatial_dropout = nn.Dropout2d(0.1)
 
         self._hidden_size = rnn_units
         self._top_classifier = nn.Linear(in_features=6*rnn_units,
@@ -187,12 +188,8 @@ class CreditsAttentionRNN(nn.Module):
                                out_features=2)
 
     def attention_net(self, lstm_output, final_state):
-        attn_weights = torch.bmm(
-            lstm_output, final_state.unsqueeze(2)).squeeze(2)
-        soft_attn_weights = F.softmax(attn_weights, 1)
-        context = torch.bmm(lstm_output.transpose(
-            1, 2), soft_attn_weights.unsqueeze(2)).squeeze(2)
-        return context
+        "TODO: add attention pooling"
+        pass
 
     def forward(self, features):
         batch_size = features[0].shape[0]
@@ -200,21 +197,19 @@ class CreditsAttentionRNN(nn.Module):
         embeddings = [embedding(features[i]) for i, embedding in enumerate(
             self._credits_cat_embeddings)]
         concated_embeddings = torch.cat(embeddings, dim=-1)
+        concated_embeddings = concated_embeddings.permute(0, 2, 1).unsqueeze(3)
+        
+        dropout_embeddings = self._spatial_dropout(concated_embeddings)
+        dropout_embeddings = dropout_embeddings.squeeze(3).permute(0, 2, 1)
 
-        hidden_states_seq, final_hidden_state = self._rnn(concated_embeddings)
+        hidden_states_seq, final_hidden_state = self._rnn(dropout_embeddings)
 
         # [batch_size, seq_leq, 2 * hidden_state]
         out_max_pool = hidden_states_seq.max(dim=1)[0]
-        out_avg_pool = hidden_states_seq.sum(
-            dim=1) / hidden_states_seq.shape[1]
-
-        final_hidden_state = final_hidden_state.permute(
-            1, 0, 2).view(batch_size, -1)
-        attn_context = self.attention_net(
-            hidden_states_seq.permute(1, 0, 2), final_hidden_state.permute())
+        out_avg_pool = hidden_states_seq.sum(dim=1) / hidden_states_seq.shape[1]
 
         combined_input = torch.cat(
-            [out_max_pool, out_avg_pool, attn_context], dim=-1)
+            [out_max_pool, out_avg_pool, final_hidden_state], dim=-1)
 
         classification_hidden = self._top_classifier(combined_input)
         activation = self._intermediate_activation(classification_hidden)
