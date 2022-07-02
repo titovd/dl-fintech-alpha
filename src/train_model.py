@@ -12,14 +12,14 @@ import torch
 import wandb
 import random
 
-seed = 317
-torch.manual_seed(seed)
-torch.cuda.manual_seed(seed)
-torch.cuda.manual_seed_all(seed)
-np.random.seed(seed)
-random.seed(seed)
-torch.backends.cudnn.benchmark = False
-torch.backends.cudnn.deterministic = True
+def seed_all(seed):
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    np.random.seed(seed)
+    random.seed(seed)
+    torch.backends.cudnn.benchmark = False
+    torch.backends.cudnn.deterministic = True
 
 
 @hydra.main(config_path=".", config_name='gru', version_base=None)
@@ -27,6 +27,7 @@ def train_model(
     cfg: DictConfig
 ):
     wandb.init(project="dl-alpha-demo", config=cfg, name=cfg['run_name'])
+    seed_all(cfg['seed'])
 
     model = get_model_by_name(
         cfg['model']['name'], cfg['uniques_emb_path'], **cfg['model']['params'])

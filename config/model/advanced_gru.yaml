@@ -1,4 +1,5 @@
 run_name: arnn-3ps-sdrop
+seed: 317
 
 model:
   name: ARNN

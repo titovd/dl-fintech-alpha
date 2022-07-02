@@ -185,7 +185,7 @@ class CreditsAdvancedRNN(nn.Module):
                                          out_features=top_classifier_units)
         self._intermediate_activation = nn.ReLU()
         self._head = nn.Linear(in_features=top_classifier_units,
-                               out_features=2)
+                               out_features=1)
 
     def attention_net(self, lstm_output, final_state):
         "TODO: add attention pooling"
@@ -203,11 +203,11 @@ class CreditsAdvancedRNN(nn.Module):
         dropout_embeddings = dropout_embeddings.squeeze(3).permute(0, 2, 1)
 
         hidden_states_seq, final_hidden_state = self._rnn(dropout_embeddings)
-
+        final_hidden_state = final_hidden_state.permute(1, 0, 2).reshape(batch_size, -1)
         # [batch_size, seq_leq, 2 * hidden_state]
         out_max_pool = hidden_states_seq.max(dim=1)[0]
         out_avg_pool = hidden_states_seq.sum(dim=1) / hidden_states_seq.shape[1]
-
+        #print(final_hidden_state.shape)
         combined_input = torch.cat(
             [out_max_pool, out_avg_pool, final_hidden_state], dim=-1)
 
@@ -215,7 +215,7 @@ class CreditsAdvancedRNN(nn.Module):
         activation = self._intermediate_activation(classification_hidden)
         logits = self._head(activation)
 
-        return logits
+        return logits.squeeze(1)
 
     @classmethod
     def _create_embedding_projection(cls, cardinality, embed_size, add_missing=True, padding_idx=0):

@@ -1,27 +1,25 @@
 run_name: gru-exmperiment
+seed: 312
 
 model:
   name: RNN
   params:
-    type: GRU
-    units: 128
-    nlayers: 1
+    rnn_type: GRU
+    rnn_units: 128
+    rnn_num_layers: 1
     top_classifier_units: 32
 
 optimizer:
   name: Adam
   params:
-    lr: 1e-3
-    weight_decay: 1e-4
+    lr: 0.0005
+    weight_decay: 1e-05
 
 scheduler:
-  name: CyclicLR
+  name: StepLR
   params:
-    base_lr: 0.0001
-    step_size_up: 10000
-    max_lr: 0.006
-    cycle_momentum: False
-    mode: "triangular2"
+    step_size: 20000
+    gamma: 0.5
 
 train_batch_size: 256
 val_batch_size: 256
@@ -29,7 +27,7 @@ num_epochs: 15
 device: cuda
 path_to_checkpoints: "./checkpoints/pytorch_baseline/"
 
-train_buckets_path: "/content/drive/MyDrive/ml/dl-alpha-competition/train_buckets_rnn/."
-val_buckets_path: "/content/drive/MyDrive/ml/dl-alpha-competition/val_buckets_rnn/."
-test_buckets_path: "/content/drive/MyDrive/ml/dl-alpha-competition/test_buckets_rnn/."
-uniques_emb_path: uniques.pkl
+train_buckets_path: "/content/drive/MyDrive/dl-alpha-competition/train_buckets_rnn/."
+val_buckets_path: "/content/drive/MyDrive/dl-alpha-competition/val_buckets_rnn/."
+test_buckets_path: "/content/drive/MyDrive/dl-alpha-competition/test_buckets_rnn/."
+uniques_emb_path: "/content/dl-fintech-alpha/data/processed/uniques.pkl"

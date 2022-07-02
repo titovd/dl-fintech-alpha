@@ -1,4 +1,5 @@
 run_name: BiLSTM-128-steplr-test
+seed: 312
 
 model:
   name: RNN
