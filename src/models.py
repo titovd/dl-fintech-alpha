@@ -3,6 +3,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from pooling import TemporalAttentionPooling
+
 
 # =============================================
 #               Transformer Model
@@ -161,8 +163,16 @@ class CreditsRNN(nn.Module):
 
 
 class CreditsAdvancedRNN(nn.Module):
-    def __init__(self, features, embedding_projections,
-                 rnn_type="GRU", rnn_units=128, rnn_num_layers=1, top_classifier_units=64):
+    """ @TODO Docs."""
+    def __init__(
+        self, 
+        features, 
+        embedding_projections,
+        rnn_type="GRU", 
+        rnn_units=128, 
+        rnn_num_layers=1, 
+        top_classifier_units=64
+    ):
         super(CreditsAdvancedRNN, self).__init__()
         self._credits_cat_embeddings = nn.ModuleList(
             [self._create_embedding_projection(*embedding_projections[feature])
@@ -179,17 +189,14 @@ class CreditsAdvancedRNN(nn.Module):
             bidirectional=True
         )
         self._spatial_dropout = nn.Dropout2d(0.1)
+        self._attn_pooling = TemporalAttentionPooling(2 * rnn_units)
 
         self._hidden_size = rnn_units
-        self._top_classifier = nn.Linear(in_features=6*rnn_units,
+        self._top_classifier = nn.Linear(in_features=8*rnn_units,
                                          out_features=top_classifier_units)
         self._intermediate_activation = nn.ReLU()
         self._head = nn.Linear(in_features=top_classifier_units,
                                out_features=1)
-
-    def attention_net(self, lstm_output, final_state):
-        "TODO: add attention pooling"
-        pass
 
     def forward(self, features):
         batch_size = features[0].shape[0]
@@ -203,13 +210,18 @@ class CreditsAdvancedRNN(nn.Module):
         dropout_embeddings = dropout_embeddings.squeeze(3).permute(0, 2, 1)
 
         hidden_states_seq, final_hidden_state = self._rnn(dropout_embeddings)
-        final_hidden_state = final_hidden_state.permute(1, 0, 2).reshape(batch_size, -1)
+        
+        if isinstance(final_hidden_state, tuple):
+            final_hidden_state = final_hidden_state[0]
+        
         # [batch_size, seq_leq, 2 * hidden_state]
         out_max_pool = hidden_states_seq.max(dim=1)[0]
         out_avg_pool = hidden_states_seq.sum(dim=1) / hidden_states_seq.shape[1]
+        out_attn_pool = self._attn_pooling(hidden_states_seq)
+        final_hidden_state = final_hidden_state.permute(1, 0, 2).reshape(batch_size, -1)
         #print(final_hidden_state.shape)
         combined_input = torch.cat(
-            [out_max_pool, out_avg_pool, final_hidden_state], dim=-1)
+            [out_max_pool, out_avg_pool, out_attn_pool, final_hidden_state], dim=-1)
 
         classification_hidden = self._top_classifier(combined_input)
         activation = self._intermediate_activation(classification_hidden)

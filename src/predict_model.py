@@ -1,8 +1,7 @@
 from pytorch_training import inference
 
 from models import CreditsRNN
-from dataset_preprocessing_utils import features
-from utils import compute_emb_projections, read_pickle_file
+from utils import compute_emb_projections, read_pickle_file, get_model_by_name
 
 
 import hydra
@@ -15,17 +14,8 @@ import torch
 def predict_rnn_model(
     cfg: DictConfig
 ):
-    
-    uniques = read_pickle_file(cfg['uniques_emb_path'])
-    embedding_projections = compute_emb_projections(uniques)
-    
-    model = CreditsRNN(
-        features, embedding_projections, 
-        rnn_type=cfg['model']['type'], 
-        rnn_units=cfg['model']['units'],
-        rnn_num_layers=cfg['model']['nlayers'],
-        top_classifier_units=cfg['model']['top_classifier_units']
-    )
+    model = get_model_by_name(
+        cfg['model']['name'], cfg['uniques_emb_path'], **cfg['model']['params'])
     
     model.load_state_dict(
         torch.load(os.path.join(cfg['path_to_checkpoints'], "best_checkpoint.pt")))
@@ -35,7 +25,7 @@ def predict_rnn_model(
                            for x in os.listdir(cfg['test_buckets_path'])])
     
     test_preds = inference(model, dataset_test, batch_size=256, device=cfg['device'])
-    test_preds.to_csv("rnn_submission.csv", index=None)
+    test_preds.to_csv(os.path.join(cfg['path_to_checkpoints'], 'submission.csv'), index=None)
     
 if __name__ == '__main__':
     predict_rnn_model()
