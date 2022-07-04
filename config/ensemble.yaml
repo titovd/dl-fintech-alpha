@@ -1,0 +1,9 @@
+submissions_paths: 
+  - "/content/data/checkpoints/alstm-attn"
+  - "/content/data/checkpoints/basegru"
+  - "/content/data/checkpoints/alstm"
+
+train_target_path: "/content/data/train_target.csv"
+test_target_path: "/content/data/test_target.csv"
+
+ensemble_submission_path: "submission_ensemble.csv"

@@ -5,7 +5,7 @@ model:
   name: ARNN
   params:
     rnn_type: LSTM
-    rnn_units: 128
+    rnn_units: 192
     rnn_num_layers: 1
     top_classifier_units: 32
 
@@ -25,7 +25,8 @@ train_batch_size: 256
 val_batch_size: 256
 num_epochs: 15
 device: cuda
-path_to_checkpoints: "drive/MyDrive/ml/dl-alpha-competition/checkpoints/alstm/"
+path_to_checkpoints: "drive/MyDrive/ml/dl-alpha-competition/checkpoints/alstm-attn/"
+submission_filename: train_submission.csv
 
 train_buckets_path: "/content/drive/MyDrive/ml/dl-alpha-competition/train_buckets_rnn/."
 val_buckets_path: "/content/drive/MyDrive/ml/dl-alpha-competition/val_buckets_rnn/."

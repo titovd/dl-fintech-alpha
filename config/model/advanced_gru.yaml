@@ -1,4 +1,4 @@
-run_name: arnn-3ps-sdrop
+run_name: arnn-3ps-sdrop-gruh2
 seed: 317
 
 model:
@@ -7,13 +7,13 @@ model:
     rnn_type: GRU
     rnn_units: 128
     rnn_num_layers: 1
-    top_classifier_units: 64
+    top_classifier_units: 32
 
 optimizer:
   name: Adam
   params:
-    lr: 1e-3
-    weight_decay: 1e-4
+    lr: 0.0005
+    weight_decay: 1e-05
 
 scheduler:
   name: StepLR
@@ -25,9 +25,9 @@ train_batch_size: 256
 val_batch_size: 256
 num_epochs: 15
 device: cuda
-path_to_checkpoints: "./checkpoints/pytorch_baseline/"
+path_to_checkpoints: "drive/MyDrive/ml/dl-alpha-competition/checkpoints/agru/"
 
-train_buckets_path: "/content/drive/MyDrive/dl-alpha-competition/train_buckets_rnn/."
-val_buckets_path: "/content/drive/MyDrive/dl-alpha-competition/val_buckets_rnn/."
-test_buckets_path: "/content/drive/MyDrive/dl-alpha-competition/test_buckets_rnn/."
+train_buckets_path: "/content/drive/MyDrive/ml/dl-alpha-competition/train_buckets_rnn/."
+val_buckets_path: "/content/drive/MyDrive/ml/dl-alpha-competition/val_buckets_rnn/."
+test_buckets_path: "/content/drive/MyDrive/ml/dl-alpha-competition/test_buckets_rnn/."
 uniques_emb_path: "/content/dl-fintech-alpha/data/processed/uniques.pkl"

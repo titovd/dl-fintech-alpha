@@ -25,7 +25,7 @@ def predict_rnn_model(
                            for x in os.listdir(cfg['test_buckets_path'])])
     
     test_preds = inference(model, dataset_test, batch_size=256, device=cfg['device'])
-    test_preds.to_csv(os.path.join(cfg['path_to_checkpoints'], 'submission.csv'), index=None)
+    test_preds.to_csv(os.path.join(cfg['path_to_checkpoints'], cfg['submission_filename']), index=None)
     
 if __name__ == '__main__':
     predict_rnn_model()

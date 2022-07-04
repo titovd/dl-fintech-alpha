@@ -32,4 +32,19 @@ class TemporalAttentionPooling(nn.Module):
         x_attn = (self.attention_pooling(x_a) * x_a).transpose(1, 2)
         x_attn = x_attn.sum(1, keepdim=True)
 
-        return x_attn
+        return x_attn.squeeze(1)
+    
+class TemporalLastPooling(nn.Module):
+    def forward(self, x: torch.Tensor, mask: torch.Tensor = None) -> torch.Tensor:
+        x_out = x[:, -1:, :]
+        return x_out
+    
+class TemporalMaxPooling(nn.Module):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x_out = x.max(1, keepdim=True)[0]
+        return x_out
+    
+class TemporalAvgPooling(nn.Module):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x_out = x.mean(1, keepdim=True)
+        return x_out
