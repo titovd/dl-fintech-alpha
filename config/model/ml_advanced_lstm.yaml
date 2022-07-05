@@ -2,7 +2,7 @@ run_name: ml-arnn
 seed: 317
 
 model:
-  name: ARNN
+  name: MLARNN
   params:
     rnn_type: LSTM
     rnn_units: 128
@@ -26,7 +26,7 @@ val_batch_size: 256
 num_epochs: 15
 device: cuda
 path_to_checkpoints: "drive/MyDrive/ml/dl-alpha-competition/checkpoints/ml-alstm-attn/"
-submission_filename: train_submission.csv
+submission_filename: test_submission.csv
 
 train_buckets_path: "/content/drive/MyDrive/ml/dl-alpha-competition/train_buckets_rnn/."
 val_buckets_path: "/content/drive/MyDrive/ml/dl-alpha-competition/val_buckets_rnn/."

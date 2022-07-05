@@ -167,6 +167,7 @@ class CreditsRNN(nn.Module):
 class TemporalSpatialDropout(nn.Module):
     """ @TODO Docs. """
     def __init__(self, p_dropout):
+        super().__init__()
         self._dropout = nn.Dropout2d(0.1)
     
     def forward(self, x: torch.Tensor):
@@ -285,7 +286,7 @@ class CreditsMultiLayerARNN(nn.Module):
             bidirectional=True
         )
         
-        self._spatial_dropout = nn.Dropout2d(0.1)
+        self._spatial_dropout = TemporalSpatialDropout(0.1)
         self._poolings = nn.ModuleDict({
             "max": TemporalMaxPooling(), "avg": TemporalAvgPooling(),
             "last": TemporalLastPooling(), "attn": TemporalAttentionPooling(2 * (rnn_units - 32))
