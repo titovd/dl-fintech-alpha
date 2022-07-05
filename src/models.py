@@ -19,7 +19,6 @@ class CreditsEmbedder(nn.Module):
              for feature in features]
         )
 
-
     def forward(self, features):
         batch_size = features[0].shape[0]
         seq_len = features[0].shape[1]
@@ -32,7 +31,11 @@ class CreditsEmbedder(nn.Module):
     @classmethod
     def _create_embedding_projection(cls, cardinality, embed_size, add_missing=True, padding_idx=0):
         add_missing = 1 if add_missing else 0
-        return nn.Embedding(num_embeddings=cardinality+add_missing, embedding_dim=embed_size, padding_idx=padding_idx)
+        return nn.Embedding(
+            num_embeddings=cardinality+add_missing,
+            embedding_dim=embed_size,
+            padding_idx=padding_idx
+        )
 
 
 class TransformerCreditsModel(nn.Module):
@@ -161,16 +164,27 @@ class CreditsRNN(nn.Module):
 #               Advanced RNN models
 # =============================================================
 
+class TemporalSpatialDropout(nn.Module):
+    """ @TODO Docs. """
+    def __init__(self, p_dropout):
+        self._dropout = nn.Dropout2d(0.1)
+    
+    def forward(self, x: torch.Tensor):
+        x = x.permute(0, 2, 1).unsqueeze(3)
+        x_dropout = self._spatial_dropout(x)
+        x_out = x_dropout.squeeze(3).permute(0, 2, 1)
+        return x_out
 
 class CreditsAdvancedRNN(nn.Module):
     """ @TODO Docs."""
+
     def __init__(
-        self, 
-        features, 
+        self,
+        features,
         embedding_projections,
-        rnn_type="GRU", 
-        rnn_units=128, 
-        rnn_num_layers=1, 
+        rnn_type="GRU",
+        rnn_units=128,
+        rnn_num_layers=1,
         top_classifier_units=64,
     ):
         super(CreditsAdvancedRNN, self).__init__()
@@ -188,10 +202,10 @@ class CreditsAdvancedRNN(nn.Module):
             batch_first=True,
             bidirectional=True
         )
-        self._spatial_dropout = nn.Dropout2d(0.1)
-        
+        self._spatial_dropout = TemporalSpatialDropout(0.1)
+
         self._poolings = nn.ModuleDict({
-            "max" : TemporalMaxPooling(), "avg": TemporalAvgPooling(),
+            "max": TemporalMaxPooling(), "avg": TemporalAvgPooling(),
             "last": TemporalLastPooling(), "attn": TemporalAttentionPooling(2 * rnn_units)
         })
 
@@ -209,17 +223,99 @@ class CreditsAdvancedRNN(nn.Module):
             self._credits_cat_embeddings)]
         concated_embeddings = torch.cat(embeddings, dim=-1)
         # spatial dropout
-        concated_embeddings = concated_embeddings.permute(0, 2, 1).unsqueeze(3)
         dropout_embeddings = self._spatial_dropout(concated_embeddings)
-        dropout_embeddings = dropout_embeddings.squeeze(3).permute(0, 2, 1)
-
         hidden_states_seq, _ = self._rnn(dropout_embeddings)
         # spatial dropout
-        hidden_states_seq = self._spatial_dropout(hidden_states_seq.permute(0, 2, 1).unsqueeze(3))
-        hidden_states_seq = hidden_states_seq.squeeze(3).permute(0, 2, 1)
+        hidden_states_seq = self._spatial_dropout(hidden_states_seq)
+
+        # [batch_size, seq_leq, 2 * hidden_state]
+        poolings_output = [pooling(hidden_states_seq)
+                           for _, pooling in self._poolings.items()]
+        combined_input = torch.cat(poolings_output, dim=-1)
+
+        classification_hidden = self._top_classifier(combined_input)
+        activation = self._intermediate_activation(classification_hidden)
+        logits = self._head(activation)
+
+        return logits.squeeze(1)
+
+    @classmethod
+    def _create_embedding_projection(cls, cardinality, embed_size, add_missing=True, padding_idx=0):
+        add_missing = 1 if add_missing else 0
+        return nn.Embedding(
+            num_embeddings=cardinality+add_missing,
+            embedding_dim=embed_size,
+            padding_idx=padding_idx
+        )
+        
+class CreditsMultiLayerARNN(nn.Module):
+    """ @TODO Docs."""
+
+    def __init__(
+        self,
+        features,
+        embedding_projections,
+        rnn_type="GRU",
+        rnn_units=128,
+        rnn_num_layers=1,
+        top_classifier_units=64,
+    ):
+        super(CreditsAdvancedRNN, self).__init__()
+        self._credits_cat_embeddings = nn.ModuleList(
+            [self._create_embedding_projection(*embedding_projections[feature])
+             for feature in features]
+        )
+
+        assert rnn_type in ["GRU", "LSTM"]
+        self._init_rnn = get_rnn_model(
+            rnn_type,
+            input_size=sum([embedding_projections[x][1] for x in features]),
+            hidden_size=rnn_units,
+            num_layers=rnn_num_layers,
+            batch_first=True,
+            bidirectional=True
+        )
+
+        self._rnn = get_rnn_model(
+            rnn_type,
+            input_size=rnn_units,
+            hidden_size=rnn_units - 32,
+            num_layers=rnn_num_layers,
+            batch_first=True,
+            bidirectional=True
+        )
+        
+        self._spatial_dropout = nn.Dropout2d(0.1)
+        self._poolings = nn.ModuleDict({
+            "max": TemporalMaxPooling(), "avg": TemporalAvgPooling(),
+            "last": TemporalLastPooling(), "attn": TemporalAttentionPooling(2 * (rnn_units - 32))
+        })
+
+        self._hidden_size = rnn_units
+        self._top_classifier = nn.Linear(in_features=8*(rnn_units - 32),
+                                         out_features=top_classifier_units)
+        self._intermediate_activation = nn.ReLU()
+        self._head = nn.Linear(in_features=top_classifier_units,
+                               out_features=1)
+
+    def forward(self, features):
+        batch_size = features[0].shape[0]
+
+        embeddings = [embedding(features[i]) for i, embedding in enumerate(
+            self._credits_cat_embeddings)]
+        concated_embeddings = torch.cat(embeddings, dim=-1)
+        # spatial dropout
+        dropout_embeddings = self._spatial_dropout(concated_embeddings)
+        # first rnn and spatial dropout
+        hidden_states_seq, _ = self._init_rnn(dropout_embeddings)
+        hidden_states_seq = self._spatial_dropout(hidden_states_seq)
+        # second rnn 
+        hidden_states_seq, _ = self._rnn(hidden_states_seq)
+        hidden_states_seq = self._spatial_dropout(hidden_states_seq)
         
         # [batch_size, seq_leq, 2 * hidden_state]
-        poolings_output = [pooling(hidden_states_seq) for _, pooling in self._poolings.items()]  
+        poolings_output = [pooling(hidden_states_seq)
+                           for _, pooling in self._poolings.items()]
         combined_input = torch.cat(poolings_output, dim=-1)
 
         classification_hidden = self._top_classifier(combined_input)

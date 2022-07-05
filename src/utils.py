@@ -7,7 +7,7 @@ import tqdm
 import torch
 from typing import List
 
-from models import CreditsRNN, TransformerCreditsModel, CreditsAdvancedRNN
+from models import CreditsRNN, TransformerCreditsModel, CreditsAdvancedRNN, CreditsMultiLayerARNN
 from dataset_preprocessing_utils import features
 
 
@@ -78,9 +78,14 @@ def get_model_by_name(model_name: str, emb_path: str, **kwargs) -> torch.nn.Modu
         return CreditsRNN(
             features, embedding_projections, **kwargs)
     elif model_name == "Transformer":
-        return TransformerCreditsModel(features, embedding_projections)
+        return TransformerCreditsModel(
+            features, embedding_projections)
     elif model_name == "ARNN":
-        return CreditsAdvancedRNN(features, embedding_projections, **kwargs)
+        return CreditsAdvancedRNN(
+            features, embedding_projections, **kwargs)
+    elif model_name == "MLARNN":
+        return CreditsMultiLayerARNN(
+            features, embedding_projections, **kwargs)
 
 
 def get_optimizer_by_name(optimizer_name: str, model: torch.nn.Module, **kwargs) -> torch.optim.Optimizer:
