@@ -261,7 +261,7 @@ class CreditsMultiLayerARNN(nn.Module):
         rnn_num_layers=1,
         top_classifier_units=64,
     ):
-        super(CreditsAdvancedRNN, self).__init__()
+        super(CreditsMultiLayerARNN, self).__init__()
         self._credits_cat_embeddings = nn.ModuleList(
             [self._create_embedding_projection(*embedding_projections[feature])
              for feature in features]
@@ -279,8 +279,8 @@ class CreditsMultiLayerARNN(nn.Module):
 
         self._rnn = get_rnn_model(
             rnn_type,
-            input_size=rnn_units,
-            hidden_size=rnn_units - 32,
+            input_size=2*rnn_units,
+            hidden_size=rnn_units-32,
             num_layers=rnn_num_layers,
             batch_first=True,
             bidirectional=True

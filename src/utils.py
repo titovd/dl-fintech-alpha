@@ -67,7 +67,7 @@ def compute_emb_projections(uniques_features: dict) -> dict:
 
 def calculate_weight(ids: np.array) -> torch.FloatTensor:
     """ Вычисление веса объекта по его id. """
-    return torch.FloatTensor((ids / 2_500_000) * 0.55 + 0.85)
+    return torch.FloatTensor((ids / 3_000_000) * 0.55 + 0.85)
 
 
 def get_model_by_name(model_name: str, emb_path: str, **kwargs) -> torch.nn.Module:
