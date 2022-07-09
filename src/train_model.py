@@ -72,7 +72,7 @@ def train_model(
 ):
     seed_all(cfg['seed'])
     
-    for fold in range(0, 4):
+    for fold in [0, 3]:
         wandb.init(
             project="dl-alpha-demo", 
             config=cfg, 

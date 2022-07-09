@@ -26,7 +26,8 @@ val_batch_size: 256
 num_epochs: 15
 device: cuda
 path_to_checkpoints: "drive/MyDrive/ml/dl-alpha-competition/checkpoints/kfold-gru/"
+submission_filename: train_submission.csv
 
-buckets_path: "/content/drive/MyDrive/dl-alpha-competition/kfold-validation/."
-test_buckets_path: "/content/drive/MyDrive/dl-alpha-competition/test_buckets_rnn/."
+buckets_path: "/content/drive/MyDrive/ml/dl-alpha-competition/kfold-validation/"
+test_buckets_path: "/content/drive/MyDrive/ml/dl-alpha-competition/test_buckets_rnn/"
 uniques_emb_path: "/content/dl-fintech-alpha/data/processed/uniques.pkl"

@@ -172,7 +172,7 @@ class TemporalSpatialDropout(nn.Module):
     
     def forward(self, x: torch.Tensor):
         x = x.permute(0, 2, 1).unsqueeze(3)
-        x_dropout = self._spatial_dropout(x)
+        x_dropout = self._dropout(x)
         x_out = x_dropout.squeeze(3).permute(0, 2, 1)
         return x_out
 
