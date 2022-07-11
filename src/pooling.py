@@ -30,7 +30,9 @@ class TemporalAttentionPooling(nn.Module):
         batch_size, history_len, feature_size = x.shape
 
         x = x.view(batch_size, history_len, -1)
-        x_a = x.transpose(1, 2)
+        if mask is not None:
+            x_masked = x * mask[:, :, None].float()
+        x_a = x_masked.transpose(1, 2)
         x_attn = (self.attention_pooling(x_a) * x_a).transpose(1, 2)
         x_attn = x_attn.sum(1, keepdim=True)
 
@@ -39,17 +41,29 @@ class TemporalAttentionPooling(nn.Module):
 
 class TemporalLastPooling(nn.Module):
     def forward(self, x: torch.Tensor, mask: torch.Tensor = None) -> torch.Tensor:
-        x_out = x[:, -1:, :]
+        # x: [batch, len, features]
+        lenghts = mask.sum(dim=1).clamp_max(x.shape[1] - 1).long()
+        x_out = x[torch.arange(len(x)), lenghts - 1]
         return x_out.squeeze(1)
 
 
 class TemporalMaxPooling(nn.Module):
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, mask: torch.Tensor = None) -> torch.Tensor:
+        if mask is not None:
+            assert mask.shape == (x.shape[0], x.shape[1]), "Mask must has the shape (batch_size, seq_len)"
+            x_mask = (~mask.bool()).float() * (-x.max()).float()
+            x = x + x_mask[:, :,    None]
         x_out = x.max(1, keepdim=True)[0]
         return x_out.squeeze(1)
 
 
+
 class TemporalAvgPooling(nn.Module):
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x_out = x.mean(1, keepdim=True)
+    def forward(self, x: torch.Tensor, mask: torch.Tensor = None) -> torch.Tensor:
+        if mask is None:
+            x_out = x.mean(1, keepdim=True)
+        else:
+            x_masked = torch.sum(x * mask.float()[:, :, None], dim=1)
+            mask_sum = torch.sum(mask.float(), dim=1, keepdim=True)
+            x_out = x_masked / mask_sum
         return x_out.squeeze(1)
