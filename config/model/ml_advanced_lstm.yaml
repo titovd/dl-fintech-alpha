@@ -1,4 +1,4 @@
-run_name: ml-arnn
+run_name: kfold-ml-arnn
 seed: 317
 
 model:
@@ -21,14 +21,13 @@ scheduler:
     step_size: 20000
     gamma: 0.5
 
-train_batch_size: 256
+train_batch_size: 128
 val_batch_size: 256
 num_epochs: 15
 device: cuda
-path_to_checkpoints: "drive/MyDrive/ml/dl-alpha-competition/checkpoints/ml-alstm-attn/"
+path_to_checkpoints: "drive/MyDrive/ml/dl-alpha-competition/checkpoints/kfold-ml-alstm-attn/"
 submission_filename: test_submission.csv
 
-train_buckets_path: "/content/drive/MyDrive/ml/dl-alpha-competition/train_buckets_rnn/."
-val_buckets_path: "/content/drive/MyDrive/ml/dl-alpha-competition/val_buckets_rnn/."
-test_buckets_path: "/content/drive/MyDrive/ml/dl-alpha-competition/test_buckets_rnn/."
+buckets_path: "/content/drive/MyDrive/ml/dl-alpha-competition/kfold-validation/"
+test_buckets_path: "/content/drive/MyDrive/ml/dl-alpha-competition/time-series-validation/test_buckets_rnn"
 uniques_emb_path: "/content/dl-fintech-alpha/data/processed/uniques.pkl"
