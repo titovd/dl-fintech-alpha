@@ -42,8 +42,11 @@ class TemporalAttentionPooling(nn.Module):
 class TemporalLastPooling(nn.Module):
     def forward(self, x: torch.Tensor, mask: torch.Tensor = None) -> torch.Tensor:
         # x: [batch, len, features]
-        lenghts = mask.sum(dim=1).clamp_max(x.shape[1] - 1).long()
-        x_out = x[torch.arange(len(x)), lenghts - 1]
+        if mask is not None:
+            lenghts = mask.sum(dim=1).clamp_max(x.shape[1] - 1).long()
+            x_out = x[torch.arange(len(x)), lenghts - 1]
+        else:
+            x_out = x[:, -1:, :]
         return x_out.squeeze(1)
 
 
