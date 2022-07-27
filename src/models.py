@@ -314,6 +314,9 @@ class CreditsMultiLayerARNN(nn.Module):
         hidden_states_seq, _ = self._rnn(hidden_states_seq)
         hidden_states_seq = self._spatial_dropout(hidden_states_seq)
         
+        # TODO: mask calculation
+        # mask = <...>.sum() ...
+        
         # [batch_size, seq_leq, 2 * hidden_state]
         poolings_output = [pooling(hidden_states_seq)
                            for _, pooling in self._poolings.items()]

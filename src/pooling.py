@@ -32,6 +32,8 @@ class TemporalAttentionPooling(nn.Module):
         x = x.view(batch_size, history_len, -1)
         if mask is not None:
             x_masked = x * mask[:, :, None].float()
+        else:
+            x_masked = x
         x_a = x_masked.transpose(1, 2)
         x_attn = (self.attention_pooling(x_a) * x_a).transpose(1, 2)
         x_attn = x_attn.sum(1, keepdim=True)

@@ -50,7 +50,7 @@ def train_epoch(
     model.train()
 
     loss_function = nn.BCEWithLogitsLoss(reduction="none")
-    losses = torch.LongTensor().to(device)
+    losses = torch.FloatTensor().to(device)
     samples_counter = 0
     
     train_generator = batches_generator(dataset_train, batch_size=batch_size, shuffle=shuffle,
@@ -61,8 +61,9 @@ def train_epoch(
         output = model(batch["features"])
         batch_loss = loss_function(output, batch["label"].float())
         
-        weight = calculate_weight(batch["id_"]).to(device)
-        loss = weight * batch_loss
+        # weight = calculate_weight(batch["id_"]).to(device)
+        # loss = weight * batch_loss
+        loss = batch_loss
         loss.mean().backward()
         
         optimizer.step()
